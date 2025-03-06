@@ -1,0 +1,23 @@
+# ninja log v5
+0	2579	1741259869534507895	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	a75a6e9cbc4e492e
+1	2459	1741259869411899226	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	3a4923f04e91be21
+2	2213	1741259869166847548	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	52e79f5f144ae684
+1	2203	1741259869152955594	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	5b8029e44e97aedd
+1	2052	1741259869003281981	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	aa2f855a7e189cc
+2	1962	1741259868902424439	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	eba3ca032b15688a
+2579	2656	1741259869613294609	/Users/apple/Documents/GitHub/Firebase-Multi-Feature-Template/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/i62i1x6e/obj/arm64-v8a/libgame.so	bdfeafcec26b183d
+1	1953	1741259868900423806	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	616e6762d093946f
+267	415	1741259867372600866	/Users/apple/Documents/GitHub/Firebase-Multi-Feature-Template/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/i62i1x6e/obj/arm64-v8a/libswappywrapper.so	d41e65d607ced14c
+2	2032	1741259868975873799	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	b945e7a81b4e85d
+3	266	1741259867222802700	FramePacing/CMakeFiles/swappywrapper.dir/UnitySwappyWrapper.cpp.o	70bd4dbd333f4678
+7	667	1741260762489199954	FramePacing/CMakeFiles/swappywrapper.dir/UnitySwappyWrapper.cpp.o	70bd4dbd333f4678
+668	951	1741260762775541586	/Users/apple/Documents/GitHub/Firebase-Multi-Feature-Template/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/i62i1x6e/obj/arm64-v8a/libswappywrapper.so	d41e65d607ced14c
+6	2310	1741260764123882904	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	eba3ca032b15688a
+6	2337	1741260764150920302	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	616e6762d093946f
+5	2391	1741260764204720330	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	aa2f855a7e189cc
+6	2405	1741260764218284600	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	b945e7a81b4e85d
+5	2518	1741260764334878583	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	5b8029e44e97aedd
+7	2524	1741260764342409729	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	52e79f5f144ae684
+6	2836	1741260764653217217	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	3a4923f04e91be21
+5	3012	1741260764831163003	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	a75a6e9cbc4e492e
+3012	3103	1741260764924685205	/Users/apple/Documents/GitHub/Firebase-Multi-Feature-Template/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/i62i1x6e/obj/arm64-v8a/libgame.so	bdfeafcec26b183d

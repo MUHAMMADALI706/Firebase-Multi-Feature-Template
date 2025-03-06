@@ -1,14 +1,8 @@
 using UnityEngine;
 using TMPro;
 using System;
-using System.Collections.Generic;
-using UnityEngine.UI;
-//using Assets.SimpleGoogleSignIn.Scripts;
-using System.Collections;
 using Firebase;
-using Firebase.Auth;
 using System.Text.RegularExpressions;
-using UnityEngine.Rendering;
 
 public class AuthController : MonoBehaviour
 {
@@ -17,6 +11,7 @@ public class AuthController : MonoBehaviour
     public TMP_Text aError;
     public TMP_Text aHeading;
     public TMP_Text aPageToggleText;
+    public GameObject forgetPassword;
 
     [Header("Auth Fields")]
     public TMP_InputField aUsername;
@@ -28,23 +23,57 @@ public class AuthController : MonoBehaviour
     [Header("Other Fields")]
     public GameObject loginOrRegisterPanel;
     public GameObject logoutPanel;
+    public GameObject loadingPanel;
 
     private string mAuthType;
 
     void Start()
     {
-        this.mAuthType=AuthConstant.sAuthTypeLogin;
-        onInit(null,null);
+        FirebaseManager.Instance.Load(_Start);
+    }
+    void _Start()
+    {
+        loadingPanel.SetActive(false);
+        if (FirebaseManager.Instance.user == null)
+        {
+            this.mAuthType = AuthConstant.sAuthTypeLogin;
+            onInit();
+            loginOrRegisterPanel.SetActive(true);
+        }
+        else
+        {
+            Action mCallBackEmailNotVerified = () =>
+            {
+                this.mAuthType = AuthConstant.sAuthTypeLogin;
+                onInit();
+                loginOrRegisterPanel.SetActive(true);
+                return;
+            };
+            Action mCallbackSuccess = () =>
+            {
+                onSignIn();
+            };
+            Action<FirebaseException> callbackFailure = (pError) =>
+            {
+                print(pError);
+                var errorMessage = pError.InnerException != null
+                   ? pError.InnerException.Message
+                   : pError.Message;
+                aError.text = ErrorManager.Instance.getTranslateError(errorMessage);
+            };
+            FirebaseManager.Instance.RefreshUserStatus(mCallbackSuccess, mCallBackEmailNotVerified, callbackFailure);
+
+        }
     }
     public void Logout()
     {
         FirebaseManager.Instance.OnLogout();
-        mAuthType=AuthConstant.sAuthTypeLogin;
+        mAuthType = AuthConstant.sAuthTypeLogin;
         logoutPanel.SetActive(false);
         loginOrRegisterPanel.SetActive(true);
-        onInit(null,null);
+        onInit();
     }
-    public void onInit(Dictionary<string, object> pData, Action<object> callback)
+    public void onInit()
     {
         //this.mAuthType = (string)pData.GetValueOrDefault(AuthKey.sAuthType, AuthConstant.sAuthTypeSignup);
         if (this.mAuthType == AuthConstant.sAuthTypeLogin)
@@ -53,6 +82,7 @@ public class AuthController : MonoBehaviour
             aTriggerButton.text = "Continue";
             aPageToggleText.text = "New user? Register new account";
             //aForgetPassword.SetActive(true);
+            forgetPassword.SetActive(true);
             logoutPanel.SetActive(false);
         }
         else if (this.mAuthType == AuthConstant.sAuthTypeSignup)
@@ -62,6 +92,7 @@ public class AuthController : MonoBehaviour
             aPageToggleText.text = "Already have an acount?";
             //aForgetPassword.SetActive(false);
             aReEnterPassword.gameObject.SetActive(true);
+            forgetPassword.SetActive(false);
             logoutPanel.SetActive(false);
         }
     }
@@ -69,14 +100,14 @@ public class AuthController : MonoBehaviour
     {
         if (this.mAuthType == AuthConstant.sAuthTypeLogin)
         {
-            this.mAuthType=AuthConstant.sAuthTypeSignup;
+            this.mAuthType = AuthConstant.sAuthTypeSignup;
         }
         else if (this.mAuthType == AuthConstant.sAuthTypeSignup)
         {
-            this.mAuthType=AuthConstant.sAuthTypeLogin;
+            this.mAuthType = AuthConstant.sAuthTypeLogin;
         }
-        aError.text="";
-        onInit(null,null);
+        aError.text = "";
+        onInit();
     }
 
 
@@ -85,8 +116,8 @@ public class AuthController : MonoBehaviour
         print("sign in");
         loginOrRegisterPanel.SetActive(false);
         logoutPanel.SetActive(true);
+        Application.LoadLevel(1);
     }
-    
     public void OnTrigger()
     {
         if (aUsername.text == "")
@@ -104,7 +135,7 @@ public class AuthController : MonoBehaviour
         {
             Action mCallBackEmailNotVerified = () =>
             {
-                string message="Email is still not Verified";
+                string message = "Email is still not Verified";
                 print(message);
                 aError.text = message;
                 aError.gameObject.SetActive(false);
@@ -165,7 +196,7 @@ public class AuthController : MonoBehaviour
             }
             Action callbackSuccess = () =>
             {
-                string message="Verification send on mail. Verifiy it to login";
+                string message = "Verification send on mail. Verifiy it to login";
                 print(message);
                 aError.text = message;
                 aError.gameObject.SetActive(false);
@@ -196,6 +227,7 @@ public class AuthController : MonoBehaviour
         {
             Action callbackSuccess = () =>
             {
+                aError.text = "An email sended to reset password";
                 Application.OpenURL("mailto:");
             };
 
@@ -206,7 +238,7 @@ public class AuthController : MonoBehaviour
                ? pError.InnerException.Message
                : pError?.Message ?? "An unknown error occurred.";
             aError.text = ErrorManager.Instance.getTranslateError(errorMessage);
-            
+
         };
         FirebaseManager.Instance.OnTryPasswordReset(aUsername.text, callbackSuccess, callbackFailure);
 

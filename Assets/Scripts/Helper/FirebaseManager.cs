@@ -4,6 +4,8 @@ using Firebase;
 using Firebase.Auth;
 using Firebase.Database;
 using Firebase.Extensions;
+using Firebase.Analytics;
+using Firebase.Crashlytics;
 using UnityEngine;
 using System.Threading.Tasks;
 
@@ -15,10 +17,7 @@ public class FirebaseManager : GenericSingletonClass<FirebaseManager>
     public DatabaseReference databaseReference { get; private set; }
     public bool firebaseInitialized;
 
-    private void Start()
-    {
-        Load(null);
-    }
+
 
     public void Load(Action onFirebaseInitialized)
     {
@@ -32,6 +31,8 @@ public class FirebaseManager : GenericSingletonClass<FirebaseManager>
                 dependencyStatus = DependencyStatus.Available;
                 auth = FirebaseAuth.DefaultInstance;
                 databaseReference = FirebaseDatabase.DefaultInstance.RootReference;
+                FirebaseAnalytics.SetAnalyticsCollectionEnabled(true);
+                Crashlytics.ReportUncaughtExceptionsAsFatal = true;
                 firebaseInitialized = true;
                 user = auth.CurrentUser;
                 if (user != null)
@@ -52,13 +53,13 @@ public class FirebaseManager : GenericSingletonClass<FirebaseManager>
 
 
 
-    public void OnTryLogin(string email, string password, Action onSuccess, Action onEmailNotVerified,Action<FirebaseException> onFailure)
+    public void OnTryLogin(string email, string password, Action onSuccess, Action onEmailNotVerified, Action<FirebaseException> onFailure)
     {
         print("out");
         if (!firebaseInitialized)
         {
             print("Firebase not initialized. Loading...");
-            Load(() => OnTryLogin(email, password, onSuccess,onEmailNotVerified, onFailure));
+            Load(() => OnTryLogin(email, password, onSuccess, onEmailNotVerified, onFailure));
             return;
         }
         Credential credential =
@@ -73,8 +74,8 @@ public class FirebaseManager : GenericSingletonClass<FirebaseManager>
                 onFailure?.Invoke(task.Exception.GetBaseException() as FirebaseException);
                 return;
             }
-                user = task.Result.User;
-            if(user.IsEmailVerified)
+            user = task.Result.User;
+            if (user.IsEmailVerified)
             {
                 //OnSaveUser(email, password);
                 string userId = user.UserId;
@@ -83,7 +84,7 @@ public class FirebaseManager : GenericSingletonClass<FirebaseManager>
             }
             else
             {
-                RefreshUserStatus(onSuccess,onEmailNotVerified,onFailure);
+                RefreshUserStatus(onSuccess, onEmailNotVerified, onFailure);
             }
         });
     }
@@ -131,17 +132,17 @@ public class FirebaseManager : GenericSingletonClass<FirebaseManager>
                 user = task.Result.User;
                 SendVerificationEmail(pCallbackSuccess, onFailure);
                 //OnSaveUser(email, password);
-                
+
             }
         });
     }
 
-private void SendVerificationEmail(Action pCallbackSuccess, Action<AggregateException> onFailure)
+    private void SendVerificationEmail(Action pCallbackSuccess, Action<AggregateException> onFailure)
     {
         if (user != null)
         {
             print("not null");
-            user.SendEmailVerificationAsync().ContinueWith(task => 
+            user.SendEmailVerificationAsync().ContinueWithOnMainThread(task =>
             {
                 if (task.IsCanceled || task.IsFaulted)
                 {
@@ -154,38 +155,38 @@ private void SendVerificationEmail(Action pCallbackSuccess, Action<AggregateExce
             });
         }
     }
-public void RefreshUserStatus(Action onSuccess,Action onEmailNotVerified, Action<FirebaseException> onFailure)
-{
-    if (auth.CurrentUser != null)
+    public void RefreshUserStatus(Action onSuccess, Action onEmailNotVerified, Action<FirebaseException> onFailure)
     {
-        auth.CurrentUser.ReloadAsync().ContinueWith(task =>
+        if (auth.CurrentUser != null)
         {
-            if (task.IsCanceled || task.IsFaulted)
+            auth.CurrentUser.ReloadAsync().ContinueWithOnMainThread(task =>
             {
-                onFailure?.Invoke(task.Exception.GetBaseException() as FirebaseException);
-                return;
-            }
-            if (task.IsCompleted)
-            {
-                if (auth.CurrentUser.IsEmailVerified)
+                if (task.IsCanceled || task.IsFaulted)
                 {
-                    Debug.Log("User email is now verified.");
-                    onSuccess?.Invoke();
+                    onFailure?.Invoke(task.Exception.GetBaseException() as FirebaseException);
+                    return;
                 }
-                else
+                if (task.IsCompleted)
                 {
-                    onEmailNotVerified?.Invoke();
-                    Debug.Log("User email is still not verified.");
+                    if (auth.CurrentUser.IsEmailVerified)
+                    {
+                        Debug.Log("User email is now verified.");
+                        onSuccess?.Invoke();
+                    }
+                    else
+                    {
+                        Debug.Log("User email is still not verified.");
+                        onEmailNotVerified?.Invoke();
+                    }
                 }
-            }
-        });
+            });
+        }
     }
-}
     public void OnTryPasswordReset(string email, Action onSuccess, Action<FirebaseException> onFailure)
     {
         auth.SendPasswordResetEmailAsync(email).ContinueWithOnMainThread(task =>
         {
-            if (task.IsFaulted|| task.IsCanceled)
+            if (task.IsFaulted || task.IsCanceled)
             {
                 onFailure?.Invoke(task.Exception.GetBaseException() as FirebaseException);
                 return;
@@ -204,22 +205,6 @@ public void RefreshUserStatus(Action onSuccess,Action onEmailNotVerified, Action
     }
 
 
-
-    public void InitiatePasswordRecovery(string email, Action onSuccess, Action<AggregateException> onFailure)
-    {
-        //auth.SendPasswordResetEmailAsync(email).ContinueWith(task =>
-        //{
-        //    if (task.IsCanceled || task.IsFaulted)
-        //    {
-        //        onFailure(task.Exception);
-        //    }
-        //    else
-        //    {
-        //        Debug.Log("Password reset email sent successfully.");
-        //        onSuccess();
-        //    }
-        //});
-    }
 
     public void InitiateAccountDeletion(Action onSuccess, Action<AggregateException> onFailure)
     {
@@ -244,38 +229,9 @@ public void RefreshUserStatus(Action onSuccess,Action onEmailNotVerified, Action
         //    onFailure(new AggregateException(new Exception("No user signed in.")));
         //}
     }
-    public void CheckIfLocationExists(string path, System.Action<bool> callback)
-    {
-        databaseReference.Child(path).GetValueAsync().ContinueWithOnMainThread(task =>
-        {
-            bool exists = task.IsCompleted && task.Result.Exists;
-            callback(exists);  // Call the callback with true or false
-            return exists;
-        });
-    }
-    public async void GetDataFromFirebase(string path, System.Action<DataSnapshot> callback)
-    {
-        try
-        {
-            DataSnapshot snapshot = await databaseReference.Child(path).GetValueAsync();
 
-            if (snapshot.Exists)
-            {
-                // Update Unity-related elements here
-                callback(snapshot);
-            }
-            else
-            {
-                print("No data exist at path: " + path);
-            }
-        }
-        catch (System.Exception ex)
-        {
-            print("Error: " + ex.Message);
-        }
-    }
 
-    public Task<(string,string)> FetchFriendDetails(string friendId)
+    public Task<(string, string)> FetchFriendDetails(string friendId)
     {
         var taskCompletionSource = new TaskCompletionSource<(string, string)>();
         databaseReference.Child("users").Child(friendId).GetValueAsync().ContinueWithOnMainThread(task =>
@@ -284,8 +240,8 @@ public void RefreshUserStatus(Action onSuccess,Action onEmailNotVerified, Action
             {
                 DataSnapshot snapshot = task.Result;
 
-                 string level = snapshot.Child("CharacterLevel").Value.ToString();
-                 string badge = snapshot.Child("BadgeName").Value.ToString();
+                string level = snapshot.Child("CharacterLevel").Value.ToString();
+                string badge = snapshot.Child("BadgeName").Value.ToString();
 
                 // Do something with the friend data (level and badge)
                 Debug.Log("Friend ID: " + friendId + " Level: " + level + " Badge: " + badge);
