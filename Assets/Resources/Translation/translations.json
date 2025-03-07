@@ -1,0 +1,25 @@
+{
+  "entries": [
+    {
+      "key": "Language Translator",
+      "translations": {
+        "ru": "Переводчик языка",
+        "zh": "语言翻译器"
+      }
+    },
+    {
+      "key": "Select Language",
+      "translations": {
+        "ru": "Выбрать язык",
+        "zh": "选择语言"
+      }
+    },
+    {
+      "key": "The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet.",
+      "translations": {
+        "ru": "Быстрая коричневая лиса перепрыгивает через ленивую собаку. Это предложение содержит каждую букву алфавита.",
+        "zh": "敏捷的棕色狐狸跳过懒狗。这句话包含了字母表中的每个字母。"
+      }
+    }
+  ]
+}
